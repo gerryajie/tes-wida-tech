@@ -6,7 +6,7 @@ function combinations(length, total) {
     return result;
   }
 
-  for (let index = 11; index < 9999999; index++) {
+  for (let index = 11; index < 999999999; index++) {
     const indexString = index.toString();
     // console.log(indexString);
 
@@ -59,9 +59,9 @@ function combinations(length, total) {
       if (indexString.length === length) {
         const numbers = indexString.split("").map(Number);
         const sum = numbers.reduce((acc, curr) => acc + curr, 0);
-        console.log(indexString.length, "panjangnya");
-        console.log(numbers, "numbers");
-        console.log(sum, "penjumlahann");
+        // console.log(indexString.length, "panjangnya");
+        // console.log(numbers, "numbers");
+        // console.log(sum, "penjumlahann");
 
         if (sum === total) {
           result.push(numbers);
@@ -78,4 +78,4 @@ console.log(combinations(7, 28));
 console.log(combinations(7, 36));
 console.log(combinations(7, 37));
 
-// console.log(combinations(9, 45));
+console.log(combinations(9, 45));
