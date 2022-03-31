@@ -18,7 +18,7 @@ module.exports = (sequelize, DataTypes) => {
   invoice.init(
     {
       noInvoice: DataTypes.INTEGER,
-      date: DataTypes.DATE,
+      date: DataTypes.DATEONLY,
       customerName: DataTypes.STRING,
       salesPersonName: DataTypes.STRING,
       paymentType: DataTypes.ENUM("CASH", "CREDIT"),

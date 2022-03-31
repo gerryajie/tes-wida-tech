@@ -10,11 +10,12 @@ module.exports = {
       },
       noInvoice: {
         allowNull: false,
+        unique: true,
         type: Sequelize.INTEGER,
       },
       date: {
         allowNull: false,
-        type: Sequelize.DATE,
+        type: Sequelize.DATEONLY,
       },
       customerName: {
         allowNull: false,

@@ -1,18 +1,6 @@
-const { invoice, product, info } = require("../models");
-// const pagination = (page, size) => {
-//   const limit = size ? +size : 6;
-//   const offset = ((page - 1) * limit) | 0;
-
-//   return { limit, offset };
-// };
-
-// const paging = (data, page, limit) => {
-//   const { count: totalItems, rows: invoice } = data;
-//   const currentPage = page ? +page : 1;
-//   const totalPages = Math.ceil(totalItems / limit);
-
-//   return { totalItems, invoice, totalPages, currentPage };
-// };
+const { date } = require("yup");
+const { invoice, product, info, sequelize } = require("../models");
+const { Op } = require("sequelize");
 
 class Invoice {
   async getAllInvoice(req, res, next) {
@@ -104,6 +92,118 @@ class Invoice {
     }
   }
 
+  async getAllInvoiceDate(req, res, next) {
+    try {
+      const pagination = (page, size) => {
+        const limit = size ? +size : 6;
+        const offset = ((page - 1) * limit) | 0;
+
+        return { limit, offset };
+      };
+      const { page, dateSum, size } = req.query;
+      const { limit, offset } = pagination(page, size);
+      const filterDate = dateSum
+        ? { [Op.iLike]: `${dateSum}` }
+        : { [Op.ne]: null };
+
+      const data = await invoice.findAndCountAll({
+        where: { date: req.params.date },
+
+        attributes: {
+          exclude: ["createdAt", "deletedAt", "updatedAt"],
+        },
+        include: [
+          {
+            model: info,
+            attributes: ["id"],
+            include: [
+              {
+                model: product,
+                attributes: ["itemName", "totalCogs", "totalPrice"],
+              },
+            ],
+          },
+        ],
+        // order: [["createdAt", "DESC"]],
+        offset,
+      });
+
+      let datenew = req.params.date;
+      console.log(data, "ini datanya");
+      // console.log(req.query.date, "ini tanggal");
+      console.log(datenew, "ini tanggal");
+
+      const findTotalProfit = await info.findAll({
+        include: [
+          {
+            model: invoice,
+          },
+          {
+            model: product,
+          },
+        ],
+      });
+
+      let sumCash = 0;
+      for (let i = 0; i < findTotalProfit.length; i++) {
+        if (
+          findTotalProfit[i].dataValues.invoice.paymentType == "CASH" &&
+          findTotalProfit[i].dataValues.invoice.date == datenew
+        ) {
+          sumCash += findTotalProfit[i].dataValues.product.totalPrice;
+        }
+      }
+
+      let sumCogsDate = 0;
+
+      for (let i = 0; i < findTotalProfit.length; i++) {
+        if (findTotalProfit[i].dataValues.invoice.date == datenew) {
+          sumCogsDate += findTotalProfit[i].dataValues.product.totalCogs;
+        }
+      }
+      console.log(sumCogsDate, "datee");
+
+      let sumCogs = 0;
+      let sumPrice = 0;
+      let sumProfit = 0;
+      for (let i = 0; i < findTotalProfit.length; i++) {
+        sumCogs += findTotalProfit[i].dataValues.product.totalCogs;
+        sumPrice += findTotalProfit[i].dataValues.product.totalPrice;
+      }
+
+      sumProfit = sumPrice - sumCogs;
+      let sumProfitDate = sumCash - sumCogsDate;
+
+      const paging = (data, page, limit) => {
+        const { count: totalItems, rows: invoice } = data;
+        const currentPage = page ? +page : 1;
+        const totalPages = Math.ceil(totalItems / limit);
+
+        return {
+          totalItems,
+          invoice,
+          totalPages,
+          currentPage,
+          sumCash,
+          sumProfitDate,
+        };
+      };
+
+      if (data == null) {
+        return res
+          .status(404)
+          .json({ success: false, errors: ["Invoice not found"] });
+      }
+
+      res.status(200).json(paging(data, page, limit));
+    } catch (error) {
+      console.log(error);
+      res
+        .status(500)
+        .json({ success: false, errors: ["Internal Server Error"] });
+    }
+  }
+
   async getInvoiceId(req, res, next) {
     try {
       const data = await info.findAll({
@@ -119,6 +219,8 @@ class Invoice {
         ],
       });
 
+      console.log(data, "ini datanya");
+
       let cogs = 0;
       let total = 0;
       for (let i = 0; i < data.length; i++) {
@@ -128,7 +230,7 @@ class Invoice {
 
       let profit = total - cogs;
 
-      if (data == null) {
+      if (data == 0) {
         return res
           .status(404)
           .json({ success: false, errors: ["Invoice not found"] });

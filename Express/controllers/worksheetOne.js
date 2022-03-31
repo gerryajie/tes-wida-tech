@@ -27,15 +27,16 @@ const upload = async (req, res) => {
       invoice
         .bulkCreate(invoiceArr)
         .then(() => {
-          res.status(200).send({
+          res.status(200).json({
             message: "Uploaded the file successfully: " + req.files.file.name,
           });
         })
         .catch((error) => {
           console.log(error);
-          return res.status(500).send({
+          return res.status(500).json({
             message: "Fail to import data into database!",
             error: error.message,
+            errors: "No duplicate for invoice",
           });
         });
     });
