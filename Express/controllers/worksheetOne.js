@@ -25,7 +25,7 @@ const upload = async (req, res) => {
       });
 
       invoice
-        .bulkCreate(invoiceArr)
+        .bulkCreate(invoiceArr, { ignoreDuplicates: true })
         .then(() => {
           res.status(200).json({
             message: "Uploaded the file successfully: " + req.files.file.name,
@@ -42,8 +42,8 @@ const upload = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    return res.status(500).send({
-      message: "Could not upload the file: " + req.files.file.name,
+    return res.status(500).json({
+      message: "choose the file: ",
     });
   }
 };
